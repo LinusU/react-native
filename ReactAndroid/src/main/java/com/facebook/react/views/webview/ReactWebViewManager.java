@@ -329,7 +329,11 @@ public class ReactWebViewManager extends SimpleViewManager<WebView> {
       if (getSettings().getJavaScriptEnabled() &&
           injectedJS != null &&
           !TextUtils.isEmpty(injectedJS)) {
-        loadUrl("javascript:(function() {\n" + injectedJS + ";\n})();");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+          evaluateJavascript("(function() {\n" + injectedJS + ";\n})();", null);
+        } else {
+          loadUrl("javascript:(function() {\n" + injectedJS + ";\n})();");
+        }
       }
     }
 
@@ -660,7 +664,11 @@ public class ReactWebViewManager extends SimpleViewManager<WebView> {
         }
         break;
       case COMMAND_INJECT_JAVASCRIPT:
-        root.loadUrl("javascript:" + args.getString(0));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+          root.evaluateJavascript(args.getString(0), null);
+        } else {
+          root.loadUrl("javascript:" + args.getString(0));
+        }
         break;
     }
   }
