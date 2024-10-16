@@ -643,19 +643,14 @@ public final class NetworkingModule extends NativeNetworkingAndroidSpec {
     mRequestIds.clear();
   }
 
-  private static WritableMap translateHeaders(Headers headers) {
-    Bundle responseHeaders = new Bundle();
+  private static WritableArray translateHeaders(Headers headers) {
+    String[][] responseHeaders = new String[][];
     for (int i = 0; i < headers.size(); i++) {
       String headerName = headers.name(i);
-      // multiple values for the same header
-      if (responseHeaders.containsKey(headerName)) {
-        responseHeaders.putString(
-            headerName, responseHeaders.getString(headerName) + ", " + headers.value(i));
-      } else {
-        responseHeaders.putString(headerName, headers.value(i));
-      }
+      String headerValue = headers.value(i);
+      responseHeaders.push([headerName, headerValue]);
     }
-    return Arguments.fromBundle(responseHeaders);
+    return Arguments.fromArray(responseHeaders);
   }
 
   @Override

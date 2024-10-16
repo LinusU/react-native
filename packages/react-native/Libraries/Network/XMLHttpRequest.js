@@ -450,20 +450,20 @@ class XMLHttpRequest extends (EventTarget(...XHR_EVENTS): typeof EventTarget) {
 
     const unsortedHeaders: Map<
       string,
-      {lowerHeaderName: string, upperHeaderName: string, headerValue: string},
+      {lowerHeaderName: string, upperHeaderName: string, headerValue: string[]},
     > = new Map();
     for (const rawHeaderName of Object.keys(responseHeaders)) {
       const headerValue = responseHeaders[rawHeaderName];
       const lowerHeaderName = rawHeaderName.toLowerCase();
       const header = unsortedHeaders.get(lowerHeaderName);
       if (header) {
-        header.headerValue += ', ' + headerValue;
+        header.headerValue.push(headerValue);
         unsortedHeaders.set(lowerHeaderName, header);
       } else {
         unsortedHeaders.set(lowerHeaderName, {
           lowerHeaderName,
           upperHeaderName: rawHeaderName.toUpperCase(),
-          headerValue,
+          headerValue: [headerValue],
         });
       }
     }
@@ -482,8 +482,13 @@ class XMLHttpRequest extends (EventTarget(...XHR_EVENTS): typeof EventTarget) {
     // Combine into single text response.
     return (
       sortedHeaders
-        .map(header => {
-          return header.lowerHeaderName + ': ' + header.headerValue;
+        .flatMap(header => {
+          // https://fetch.spec.whatwg.org/#concept-header-list-sort-and-combine
+          if (header.lowerHeaderName === 'set-cookie') {
+            return header.headerValue.map(v => header.lowerHeaderName + ': ' + v);
+          } else {
+            return [header.lowerHeaderName + ': ' + header.headerValue.join(', ')];
+          }
         })
         .join('\r\n') + '\r\n'
     );
